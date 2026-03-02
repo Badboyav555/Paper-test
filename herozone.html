@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Hero Zone! 🦸</title>
+  <style>
+/* ===== FONTS ===== */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800&display=swap');
+
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --primary: #FF6B35;
+  --secondary: #FFD23F;
+  --accent: #4ECDC4;
+  --bg-dark: #1a1a2e;
+  --bg-mid: #16213e;
+  --white: #ffffff;
+  --radius: 20px;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg-dark);
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* ===== SCREENS ===== */
+.screen {
+  position: fixed; inset: 0;
+  display: none;
+  z-index: 10;
+}
+.screen.active { display: flex; }
+
+/* ===== START SCREEN ===== */
+#startScreen {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.start-bg {
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 30%, #16213e 60%, #0f3460 100%);
+  z-index: 0;
+}
+
+.stars {
+  position: absolute; inset: 0;
+  background-image:
+    radial-gradient(circle, #fff 1px, transparent 1px),
+    radial-gradient(circle, #fff 1px, transparent 1px),
+    radial-gradient(circle, rgba(255,255,255,0.5) 1px, transparent 1px);
+  background-size: 100px 100px, 60px 60px, 40px 40px;
+  background-position: 0 0, 30px 30px, 15px 15px;
+  opacity: 0.3;
+  z-index: 0;
+  animation: twinkle 3s ease-in-out infinite alternate;
+}
+
+@keyframes twinkle {
+  from { opacity: 0.2; }
+  to   { opacity: 0.5; }
+}
+
+.start-content {
+  position: relative; z-index: 2;
+  text-align: center;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 16px;
+  padding: 20px;
+}
+
+.game-logo {
+  display: flex; flex-direction: column;
+  align-items: center; line-height: 1;
+}
+
+.logo-hero {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(52px, 16vw, 90px);
+  color: var(--secondary);
+  text-shadow: 4px 4px 0 #e65100, 0 0 40px rgba(255,210,63,0.6);
+  letter-spacing: 4px;
+}
+
+.logo-zone {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(48px, 14vw, 82px);
+  color: var(--accent);
+  text-shadow: 4px 4px 0 #00897b, 0 0 40px rgba(78,205,196,0.5);
+  margin-top: -10px;
+  letter-spacing: 4px;
+}
+
+.logo-sparkles {
+  font-size: 28px;
+  margin-top: 4px;
+  animation: spin-slow 4s linear infinite;
+}
+
+@keyframes spin-slow {
+  0%   { transform: scale(1) rotate(0deg); }
+  50%  { transform: scale(1.2) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.tagline {
+  font-size: clamp(14px, 4vw, 18px);
+  color: rgba(255,255,255,0.75);
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.floating-icons {
+  display: flex; gap: 16px;
+  font-size: clamp(24px, 7vw, 36px);
+  margin-top: 8px;
+}
+
+.floating-icons span {
+  display: inline-block;
+  animation: float 2s ease-in-out infinite;
+}
+.floating-icons span:nth-child(1) { animation-delay: 0s; }
+.floating-icons span:nth-child(2) { animation-delay: 0.3s; }
+.floating-icons span:nth-child(3) { animation-delay: 0.6s; }
+.floating-icons span:nth-child(4) { animation-delay: 0.9s; }
+.floating-icons span:nth-child(5) { animation-delay: 1.2s; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
+}
+
+/* ===== SKIN SELECTION ===== */
+#skinScreen {
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 20px 16px 30px;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.skin-bg {
+  position: fixed; inset: 0;
+  background: linear-gradient(160deg, #1a1a2e, #0f3460, #16213e);
+  z-index: -1;
+}
+
+.skin-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(26px, 8vw, 40px);
+  color: var(--secondary);
+  text-shadow: 3px 3px 0 #e65100;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.skins-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.skin-card {
+  background: rgba(255,255,255,0.07);
+  border: 3px solid rgba(255,255,255,0.15);
+  border-radius: var(--radius);
+  padding: 18px 12px 14px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 10px;
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s, background 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.skin-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 30%, rgba(255,255,255,0.1), transparent 70%);
+  pointer-events: none;
+}
+
+.skin-card:active { transform: scale(0.96); }
+
+.skin-card.selected {
+  border-color: var(--secondary);
+  background: rgba(255,210,63,0.15);
+  transform: scale(1.04);
+  box-shadow: 0 0 20px rgba(255,210,63,0.4);
+}
+
+.skin-card.selected::after {
+  content: '✓';
+  position: absolute; top: 8px; right: 12px;
+  font-size: 18px; font-weight: 900;
+  color: var(--secondary);
+}
+
+.skin-preview {
+  width: 70px; height: 70px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px;
+  position: relative;
+}
+
+.skin-name {
+  font-family: 'Fredoka One', cursive;
+  font-size: 16px;
+  color: white;
+  text-align: center;
+}
+
+.skin-desc {
+  font-size: 11px;
+  color: rgba(255,255,255,0.55);
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* ===== GAME SCREEN ===== */
+#gameScreen {
+  flex-direction: column;
+  background: #1a2744;
+}
+
+#gameCanvas {
+  display: block;
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+}
+
+#touchZone {
+  position: absolute; inset: 0;
+  z-index: 5;
+  touch-action: none;
+}
+
+/* ===== HUD ===== */
+.hud {
+  position: absolute; top: 0; left: 0; right: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.55), transparent);
+  pointer-events: none;
+}
+
+.hud-left { display: flex; gap: 12px; }
+
+.hud-score, .hud-area {
+  background: rgba(0,0,0,0.4);
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 12px;
+  padding: 5px 12px;
+  display: flex; flex-direction: column;
+  align-items: center;
+  backdrop-filter: blur(4px);
+}
+
+.hud-label {
+  font-size: 9px; letter-spacing: 2px;
+  color: rgba(255,255,255,0.55);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.hud-value {
+  font-family: 'Fredoka One', cursive;
+  font-size: 20px;
+  color: var(--secondary);
+  text-shadow: 0 0 10px rgba(255,210,63,0.6);
+  line-height: 1;
+}
+
+.btn-pause {
+  pointer-events: all;
+  background: rgba(0,0,0,0.45);
+  border: 2px solid rgba(255,255,255,0.25);
+  border-radius: 12px;
+  color: white;
+  font-size: 22px;
+  width: 44px; height: 44px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s;
+}
+.btn-pause:active { background: rgba(255,255,255,0.15); }
+
+/* ===== OVERLAY SCREENS ===== */
+.overlay-screen {
+  background: rgba(0,0,0,0.72);
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(6px);
+  z-index: 50;
+}
+
+.popup {
+  background: linear-gradient(145deg, #1e2d5e, #0f1d40);
+  border: 3px solid rgba(255,255,255,0.15);
+  border-radius: 28px;
+  padding: 32px 28px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 14px;
+  max-width: 340px; width: 90%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+  text-align: center;
+}
+
+.popup h2 {
+  font-family: 'Fredoka One', cursive;
+  font-size: 32px;
+  color: white;
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+}
+
+.popup-icon { font-size: 52px; }
+
+.game-over-popup { animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+
+@keyframes popIn {
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+.game-over-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: 36px;
+  color: var(--secondary);
+  text-shadow: 3px 3px 0 #e65100;
+}
+
+.game-over-msg {
+  font-size: 16px;
+  color: rgba(255,255,255,0.75);
+  font-weight: 700;
+}
+
+.result-stats {
+  display: flex; gap: 16px;
+  width: 100%;
+}
+
+.stat-box {
+  flex: 1;
+  background: rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 12px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 4px;
+}
+
+.stat-label {
+  font-size: 11px; letter-spacing: 1px;
+  color: rgba(255,255,255,0.5);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.stat-val {
+  font-family: 'Fredoka One', cursive;
+  font-size: 26px;
+  color: var(--accent);
+}
+
+/* ===== BUTTONS ===== */
+.btn-play {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(17px, 5vw, 22px);
+  letter-spacing: 1px;
+  background: linear-gradient(135deg, var(--primary), #ff8c42);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  padding: 16px 40px;
+  cursor: pointer;
+  box-shadow: 0 6px 0 #c0392b, 0 8px 20px rgba(255,107,53,0.4);
+  transition: transform 0.1s, box-shadow 0.1s;
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+  min-width: 200px;
+}
+
+.btn-play:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #c0392b, 0 4px 10px rgba(255,107,53,0.4);
+}
+
+.btn-secondary {
+  font-family: 'Fredoka One', cursive;
+  font-size: 16px;
+  background: rgba(255,255,255,0.1);
+  color: white;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: var(--radius);
+  padding: 12px 28px;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.2s;
+}
+.btn-secondary:active { background: rgba(255,255,255,0.2); }
+
+.btn-back {
+  font-family: 'Fredoka One', cursive;
+  font-size: 16px;
+  background: transparent;
+  color: rgba(255,255,255,0.55);
+  border: 2px solid rgba(255,255,255,0.15);
+  border-radius: var(--radius);
+  padding: 10px 24px;
+  cursor: pointer;
+}
+
+.bounce {
+  animation: bounce-btn 1.5s ease-in-out infinite;
+}
+
+@keyframes bounce-btn {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%       { transform: translateY(-6px) scale(1.03); }
+}
+
+/* ===== PARTICLE EFFECTS ===== */
+.particle {
+  position: fixed;
+  pointer-events: none;
+  z-index: 100;
+  font-size: 20px;
+  animation: particle-fly 1.2s ease-out forwards;
+}
+
+@keyframes particle-fly {
+  from { opacity: 1; transform: translate(0,0) scale(1); }
+  to   { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); }
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+
+</style>
+</head>
+<body>
+
+  <!-- ===== START SCREEN ===== -->
+  <div id="startScreen" class="screen active">
+    <div class="start-bg"></div>
+    <div class="stars"></div>
+    <div class="start-content">
+      <div class="game-logo">
+        <span class="logo-hero">HERO</span>
+        <span class="logo-zone">ZONE!</span>
+        <div class="logo-sparkles">✨⚡🌟</div>
+      </div>
+      <p class="tagline">Capture Territory • Be the Champion!</p>
+      <button class="btn-play bounce" id="btnPlay">▶ PLAY NOW!</button>
+      <div class="floating-icons">
+        <span>🦸</span><span>⚡</span><span>🛡️</span><span>💥</span><span>🌟</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SKIN SELECTION SCREEN ===== -->
+  <div id="skinScreen" class="screen">
+    <div class="skin-bg"></div>
+    <h2 class="skin-title">Choose Your Hero! 🦸</h2>
+    <div class="skins-grid" id="skinsGrid"></div>
+    <button class="btn-play" id="btnStartGame">LET'S GO! 🚀</button>
+    <button class="btn-back" id="btnBack">← Back</button>
+  </div>
+
+  <!-- ===== GAME SCREEN ===== -->
+  <div id="gameScreen" class="screen">
+    <!-- HUD -->
+    <div class="hud" id="hud">
+      <div class="hud-left">
+        <div class="hud-score">
+          <span class="hud-label">SCORE</span>
+          <span class="hud-value" id="scoreVal">0</span>
+        </div>
+        <div class="hud-area">
+          <span class="hud-label">AREA</span>
+          <span class="hud-value" id="areaVal">0%</span>
+        </div>
+      </div>
+      <div class="hud-right">
+        <button class="btn-pause" id="btnPause">⏸</button>
+      </div>
+    </div>
+
+    <!-- Canvas -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Touch swipe overlay -->
+    <div id="touchZone"></div>
+  </div>
+
+  <!-- ===== PAUSE SCREEN ===== -->
+  <div id="pauseScreen" class="screen overlay-screen">
+    <div class="popup">
+      <div class="popup-icon">⏸️</div>
+      <h2>PAUSED</h2>
+      <button class="btn-play" id="btnResume">▶ Resume</button>
+      <button class="btn-secondary" id="btnRestartPause">🔄 Restart</button>
+      <button class="btn-secondary" id="btnMenuPause">🏠 Menu</button>
+    </div>
+  </div>
+
+  <!-- ===== GAME OVER SCREEN ===== -->
+  <div id="gameOverScreen" class="screen overlay-screen">
+    <div class="popup game-over-popup">
+      <div class="popup-icon game-over-icon">💫</div>
+      <h2 class="game-over-title">AMAZING!</h2>
+      <p class="game-over-msg" id="gameOverMsg">You captured a lot!</p>
+      <div class="result-stats">
+        <div class="stat-box">
+          <span class="stat-label">Score</span>
+          <span class="stat-val" id="finalScore">0</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Area</span>
+          <span class="stat-val" id="finalArea">0%</span>
+        </div>
+      </div>
+      <button class="btn-play bounce" id="btnPlayAgain">🔄 Play Again!</button>
+      <button class="btn-secondary" id="btnMainMenu">🏠 Menu</button>
+    </div>
+  </div>
+
+  <script>
+/* ====================================================
+   HERO ZONE! - Kids Paper.io Style Game
+   script.js - Main Game Logic
+   ==================================================== */
+
+'use strict';
+
+// ============================================================
+// CONFIGURATION
+// ============================================================
+const CONFIG = {
+  MAP_SIZE:      2400,     // Virtual map size (pixels)
+  CELL:          24,       // Grid cell size in pixels
+  PLAYER_SPEED:  2.8,      // Pixels per frame for player
+  BOT_SPEED:     1.6,      // Pixels per frame for bots (slower for kids)
+  FPS_TARGET:    60,
+  START_RADIUS:  3,        // Starting territory radius (cells)
+  BOT_COUNT:     3,
+  DIFFICULTY_INTERVAL: 30000, // ms between difficulty increases
+  MAX_BOT_SPEED: 2.2,
+};
+
+// Derived constants
+const GRID_W = Math.floor(CONFIG.MAP_SIZE / CONFIG.CELL);
+const GRID_H = Math.floor(CONFIG.MAP_SIZE / CONFIG.CELL);
+
+// ============================================================
+// SUPERHERO SKIN DEFINITIONS  (No copyrighted characters)
+// ============================================================
+const SKINS = [
+  {
+    id: 'armor',
+    name: 'Armor Hero',
+    emoji: '🤖',
+    desc: 'Red & Gold Power Suit',
+    color:       '#FF4444',
+    trailColor:  '#CC2222',
+    territory:   'rgba(255,68,68,0.30)',
+    territoryBorder: '#FF4444',
+    glowColor:   '#FF8888',
+    bgGlow:      'rgba(255,68,68,0.15)',
+  },
+  {
+    id: 'shield',
+    name: 'Shield Hero',
+    emoji: '🛡️',
+    desc: 'Blue Shield of Justice',
+    color:       '#4488FF',
+    trailColor:  '#2266CC',
+    territory:   'rgba(68,136,255,0.30)',
+    territoryBorder: '#4488FF',
+    glowColor:   '#88BBFF',
+    bgGlow:      'rgba(68,136,255,0.15)',
+  },
+  {
+    id: 'strong',
+    name: 'Strong Hero',
+    emoji: '💪',
+    desc: 'Green Power Smash',
+    color:       '#44DD66',
+    trailColor:  '#22AA44',
+    territory:   'rgba(68,221,102,0.30)',
+    territoryBorder: '#44DD66',
+    glowColor:   '#88FFAA',
+    bgGlow:      'rgba(68,221,102,0.15)',
+  },
+  {
+    id: 'thunder',
+    name: 'Thunder Hero',
+    emoji: '⚡',
+    desc: 'Electric Thunder Warrior',
+    color:       '#FFCC00',
+    trailColor:  '#CC9900',
+    territory:   'rgba(255,204,0,0.30)',
+    territoryBorder: '#FFCC00',
+    glowColor:   '#FFEE88',
+    bgGlow:      'rgba(255,204,0,0.15)',
+  },
+];
+
+// Bot skins (auto-assigned, different from player)
+const BOT_SKINS = [
+  {
+    id: 'bot_pink',
+    name: 'Shadow',
+    emoji: '🌸',
+    color:       '#FF69B4',
+    trailColor:  '#CC3377',
+    territory:   'rgba(255,105,180,0.28)',
+    territoryBorder: '#FF69B4',
+    glowColor:   '#FFAAD4',
+  },
+  {
+    id: 'bot_cyan',
+    name: 'Comet',
+    emoji: '☄️',
+    color:       '#00CCDD',
+    trailColor:  '#007788',
+    territory:   'rgba(0,204,221,0.28)',
+    territoryBorder: '#00CCDD',
+    glowColor:   '#88EEFF',
+  },
+  {
+    id: 'bot_orange',
+    name: 'Blaze',
+    emoji: '🔥',
+    color:       '#FF8C00',
+    trailColor:  '#CC5500',
+    territory:   'rgba(255,140,0,0.28)',
+    territoryBorder: '#FF8C00',
+    glowColor:   '#FFCC66',
+  },
+];
+
+// ============================================================
+// GAME STATE
+// ============================================================
+let state = {
+  screen: 'start',      // 'start' | 'skin' | 'game' | 'pause' | 'gameover'
+  selectedSkin: 0,
+  running: false,
+  paused: false,
+  score: 0,
+  difficultyTimer: 0,
+};
+
+// territory grid: 0=empty, playerId 1..N
+let territory;
+
+// players array  (index 0 = human player)
+let players = [];
+
+// Particles and effects
+let particles   = [];
+let fillFlashes = []; // brief flash when territory fills
+
+// ============================================================
+// CANVAS & RENDERING
+// ============================================================
+const canvas  = document.getElementById('gameCanvas');
+const ctx     = canvas.getContext('2d');
+
+let canvasW = 0;
+let canvasH = 0;
+
+function resizeCanvas() {
+  canvasW = canvas.width  = window.innerWidth;
+  canvasH = canvas.height = window.innerHeight;
+}
+
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// ============================================================
+// SCREEN MANAGEMENT
+// ============================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active');
+    s.style.display = '';
+  });
+  const el = document.getElementById(id);
+  el.classList.add('active');
+  el.style.display = 'flex';
+}
+
+// ============================================================
+// SKIN SELECTION UI
+// ============================================================
+function buildSkinGrid() {
+  const grid = document.getElementById('skinsGrid');
+  grid.innerHTML = '';
+  SKINS.forEach((skin, i) => {
+    const card = document.createElement('div');
+    card.className = 'skin-card' + (i === state.selectedSkin ? ' selected' : '');
+    card.innerHTML = `
+      <div class="skin-preview" style="background: radial-gradient(circle, ${skin.bgGlow || 'rgba(255,255,255,0.1)'} 0%, rgba(0,0,0,0.3) 100%); box-shadow: 0 0 20px ${skin.glowColor}44;">
+        ${skin.emoji}
+      </div>
+      <div class="skin-name">${skin.name}</div>
+      <div class="skin-desc">${skin.desc}</div>
+    `;
+    card.addEventListener('click', () => {
+      state.selectedSkin = i;
+      grid.querySelectorAll('.skin-card').forEach((c, j) => {
+        c.classList.toggle('selected', j === i);
+      });
+    });
+    grid.appendChild(card);
+  });
+}
+
+// ============================================================
+// HELPER UTILITIES
+// ============================================================
+function gIdx(gx, gy)    { return gy * GRID_W + gx; }
+function inGrid(gx, gy)  { return gx >= 0 && gx < GRID_W && gy >= 0 && gy < GRID_H; }
+function cellToPixel(g)  { return g * CONFIG.CELL + CONFIG.CELL / 2; }
+function pixelToCell(p)  { return Math.floor(p / CONFIG.CELL); }
+function clamp(v,a,b)    { return Math.max(a, Math.min(b, v)); }
+
+function lerp(a, b, t)   { return a + (b - a) * t; }
+
+// Random integer in [min, max)
+function randInt(min, max) { return Math.floor(Math.random() * (max - min)) + min; }
+
+// ============================================================
+// PLAYER / BOT CLASS
+// ============================================================
+class Snake {
+  /**
+   * @param {number} id       - Unique ID (1 = human, 2+ = bots)
+   * @param {object} skin     - Skin definition object
+   * @param {boolean} isHuman - True if player-controlled
+   * @param {number} startGx  - Starting grid X
+   * @param {number} startGy  - Starting grid Y
+   */
+  constructor(id, skin, isHuman, startGx, startGy) {
+    this.id      = id;
+    this.skin    = skin;
+    this.isHuman = isHuman;
+    this.alive   = true;
+
+    // Position in PIXEL space (center of snake head)
+    this.x  = cellToPixel(startGx);
+    this.y  = cellToPixel(startGy);
+
+    // Velocity (pixels per frame)
+    const spd = isHuman ? CONFIG.PLAYER_SPEED : CONFIG.BOT_SPEED;
+    this.vx   = spd;
+    this.vy   = 0;
+
+    // Queued next direction (applied on grid alignment)
+    this.nextVx = spd;
+    this.nextVy = 0;
+
+    this.speed        = spd;
+    this.inTerritory  = true;
+    this.trail        = [];          // array of {gx, gy}
+    this.trailSet     = new Set();   // "gx,gy" strings for O(1) lookup
+
+    this.lastGx = startGx;
+    this.lastGy = startGy;
+
+    // AI state
+    this.aiTimer     = 0;
+    this.respawnTimer = 0;
+
+    // Visual smoothing for head position
+    this.drawX = this.x;
+    this.drawY = this.y;
+
+    // Claim starting territory
+    this._claimStartTerritory(startGx, startGy);
+  }
+
+  _claimStartTerritory(gcx, gcy) {
+    const r = CONFIG.START_RADIUS;
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        const gx = gcx + dx, gy = gcy + dy;
+        if (inGrid(gx, gy)) {
+          territory[gIdx(gx, gy)] = this.id;
+        }
+      }
+    }
+    this._recountArea();
+  }
+
+  // Grid position of head
+  get gx() { return pixelToCell(this.x); }
+  get gy() { return pixelToCell(this.y); }
+
+  // Set direction (with 180° reverse prevention)
+  setDir(vx, vy) {
+    // Prevent exact reverse
+    if (this.vx !== 0 && vx === -this.vx) return;
+    if (this.vy !== 0 && vy === -this.vy) return;
+    this.nextVx = vx;
+    this.nextVy = vy;
+  }
+
+  // ---- UPDATE ----
+  update(dt) {
+    if (!this.alive) {
+      if (!this.isHuman) {
+        this.respawnTimer -= dt;
+        if (this.respawnTimer <= 0) this._respawn();
+      }
+      return;
+    }
+
+    // AI decision
+    if (!this.isHuman) this._aiThink(dt);
+
+    // Apply direction change only when close to cell center (grid-aligned)
+    const halfCell = CONFIG.CELL / 2;
+    const cx = this.x % CONFIG.CELL;   // offset within current cell
+    const cy = this.y % CONFIG.CELL;
+
+    const nearCenterX = Math.abs(cx - halfCell) <= this.speed + 1;
+    const nearCenterY = Math.abs(cy - halfCell) <= this.speed + 1;
+
+    if (this.nextVx !== 0 && nearCenterY) {
+      this.vx = this.nextVx;
+      this.vy = 0;
+      // Snap to row center
+      this.y = Math.round(this.y / CONFIG.CELL) * CONFIG.CELL + halfCell;
+    } else if (this.nextVy !== 0 && nearCenterX) {
+      this.vy = this.nextVy;
+      this.vx = 0;
+      // Snap to column center
+      this.x = Math.round(this.x / CONFIG.CELL) * CONFIG.CELL + halfCell;
+    }
+
+    // Move
+    this.x += this.vx;
+    this.y += this.vy;
+
+    // Smooth draw position
+    this.drawX = lerp(this.drawX, this.x, 0.35);
+    this.drawY = lerp(this.drawY, this.y, 0.35);
+
+    // Boundary handling
+    const margin = CONFIG.CELL / 2;
+    if (this.x < margin || this.x > CONFIG.MAP_SIZE - margin ||
+        this.y < margin || this.y > CONFIG.MAP_SIZE - margin) {
+      if (this.isHuman) {
+        triggerGameOver();
+        return;
+      } else {
+        // Bounce bot
+        this.x = clamp(this.x, margin, CONFIG.MAP_SIZE - margin);
+        this.y = clamp(this.y, margin, CONFIG.MAP_SIZE - margin);
+        this._botReverse();
+        return;
+      }
+    }
+
+    // Process grid cell entry
+    const cgx = this.gx, cgy = this.gy;
+    if (cgx === this.lastGx && cgy === this.lastGy) return; // same cell
+    this.lastGx = cgx;
+    this.lastGy = cgy;
+
+    if (!inGrid(cgx, cgy)) {
+      if (this.isHuman) triggerGameOver();
+      else this._botReverse();
+      return;
+    }
+
+    const cell = territory[gIdx(cgx, cgy)];
+
+    if (cell === this.id) {
+      // Returned to own territory — fill enclosed area!
+      if (this.trail.length > 0) {
+        this._fillEnclosedArea();
+      }
+      this.inTerritory = true;
+    } else {
+      // Outside territory — lay trail
+      const key = `${cgx},${cgy}`;
+      if (this.trailSet.has(key)) {
+        // Hit own trail → die
+        if (this.isHuman) { triggerGameOver(); return; }
+        else { this._botDie(); return; }
+      }
+      this.inTerritory = false;
+      this.trail.push({ gx: cgx, gy: cgy });
+      this.trailSet.add(key);
+    }
+  }
+
+  // ---- FILL ENCLOSED AREA (Flood Fill) ----
+  _fillEnclosedArea() {
+    // First stamp trail into territory
+    for (const t of this.trail) {
+      if (inGrid(t.gx, t.gy)) territory[gIdx(t.gx, t.gy)] = this.id;
+    }
+    this.trail = [];
+    this.trailSet.clear();
+
+    // BFS flood-fill from all border cells that aren't ours
+    // Anything NOT reached from border → enclosed → claim it
+    const visited = new Uint8Array(GRID_W * GRID_H);
+    const queue   = [];
+    let   qi      = 0;
+
+    const seed = (gx, gy) => {
+      if (!inGrid(gx, gy)) return;
+      const i = gIdx(gx, gy);
+      if (visited[i] || territory[i] === this.id) return;
+      visited[i] = 1;
+      queue.push(gx, gy);
+    };
+
+    // Seed border cells
+    for (let gx = 0; gx < GRID_W; gx++) { seed(gx, 0); seed(gx, GRID_H - 1); }
+    for (let gy = 0; gy < GRID_H; gy++) { seed(0, gy); seed(GRID_W - 1, gy); }
+
+    while (qi < queue.length) {
+      const gx = queue[qi++];
+      const gy = queue[qi++];
+      seed(gx - 1, gy); seed(gx + 1, gy);
+      seed(gx, gy - 1); seed(gx, gy + 1);
+    }
+
+    // Fill un-visited, un-owned cells
+    let filled = 0;
+    for (let i = 0; i < GRID_W * GRID_H; i++) {
+      if (!visited[i] && territory[i] !== this.id) {
+        territory[i] = this.id;
+        filled++;
+      }
+    }
+
+    // Recount areas for all players
+    for (const p of players) p._recountArea();
+
+    // Spawn fill flash effect
+    if (filled > 0) {
+      fillFlashes.push({ x: this.x, y: this.y, r: 0, maxR: Math.sqrt(filled) * 8, alpha: 0.6, color: this.skin.color });
+      spawnFillParticles(this.x, this.y, this.skin.color);
+      playTone(523, 0.08, 0.15);   // happy ding
+    }
+  }
+
+  // ---- AREA COUNTING ----
+  _recountArea() {
+    let count = 0;
+    for (let i = 0; i < territory.length; i++) {
+      if (territory[i] === this.id) count++;
+    }
+    this.area = count;
+  }
+
+  // ---- BOT DEATH ----
+  _botDie() {
+    // Remove bot's territory
+    for (let i = 0; i < territory.length; i++) {
+      if (territory[i] === this.id) territory[i] = 0;
+    }
+    for (const t of this.trail) {
+      if (inGrid(t.gx, t.gy)) territory[gIdx(t.gx, t.gy)] = 0;
+    }
+    this.trail = [];
+    this.trailSet.clear();
+    this.area = 0;
+    this.alive = false;
+    this.respawnTimer = 3500;
+
+    // Sparkle particles!
+    spawnDeathParticles(this.x, this.y, this.skin.color);
+    playTone(330, 0.1, 0.2);
+  }
+
+  // ---- BOT RESPAWN ----
+  _respawn() {
+    let rx, ry;
+    let attempts = 0;
+    do {
+      const gx = randInt(5, GRID_W - 5);
+      const gy = randInt(5, GRID_H - 5);
+      if (territory[gIdx(gx, gy)] === 0) {
+        rx = cellToPixel(gx);
+        ry = cellToPixel(gy);
+        break;
+      }
+      attempts++;
+    } while (attempts < 200);
+
+    if (rx === undefined) { // fallback
+      rx = cellToPixel(GRID_W / 2 + randInt(-20, 20));
+      ry = cellToPixel(GRID_H / 2 + randInt(-20, 20));
+    }
+
+    this.x = this.drawX = rx;
+    this.y = this.drawY = ry;
+    this.vx = this.speed; this.vy = 0;
+    this.nextVx = this.speed; this.nextVy = 0;
+    this.inTerritory = true;
+    this.alive = true;
+    this.trail = []; this.trailSet.clear();
+    this.lastGx = -999; this.lastGy = -999;
+    this._claimStartTerritory(pixelToCell(rx), pixelToCell(ry));
+  }
+
+  // ---- BOT REVERSE DIRECTION ----
+  _botReverse() {
+    this.vx = -this.vx || CONFIG.BOT_SPEED;
+    this.vy = -this.vy;
+    this.nextVx = this.vx;
+    this.nextVy = this.vy;
+  }
+
+  // ---- AI LOGIC ----
+  _aiThink(dt) {
+    this.aiTimer -= dt;
+    if (this.aiTimer > 0) return;
+
+    // Slower, kid-friendly random direction changes
+    this.aiTimer = 400 + Math.random() * 900;
+
+    const dirs = [
+      [this.speed, 0],
+      [-this.speed, 0],
+      [0, this.speed],
+      [0, -this.speed],
+    ];
+
+    // Filter out reverse
+    const valid = dirs.filter(([dvx, dvy]) => {
+      if (dvx === -this.vx && dvy === -this.vy) return false;
+      // Check we won't immediately hit boundary
+      const futureX = this.x + dvx * 10;
+      const futureY = this.y + dvy * 10;
+      const margin  = CONFIG.CELL * 3;
+      return futureX > margin && futureX < CONFIG.MAP_SIZE - margin &&
+             futureY > margin && futureY < CONFIG.MAP_SIZE - margin;
+    });
+
+    if (valid.length === 0) { this._botReverse(); return; }
+
+    // If trail is long, try to head back toward own territory
+    if (!this.inTerritory && this.trail.length > 18) {
+      // Find nearest own territory cell (sampled for performance)
+      let bestDir = null, bestScore = Infinity;
+      for (const [dvx, dvy] of valid) {
+        const sampleX = pixelToCell(this.x + dvx * 30);
+        const sampleY = pixelToCell(this.y + dvy * 30);
+        // Quick heuristic: distance to own territory center (approximate)
+        let minD = 9999;
+        // Sample a few territory cells
+        for (let k = 0; k < territory.length; k += 47) {
+          if (territory[k] === this.id) {
+            const tx = k % GRID_W, ty = Math.floor(k / GRID_W);
+            const d = Math.abs(tx - sampleX) + Math.abs(ty - sampleY);
+            if (d < minD) minD = d;
+          }
+        }
+        if (minD < bestScore) { bestScore = minD; bestDir = [dvx, dvy]; }
+      }
+      if (bestDir) { this.nextVx = bestDir[0]; this.nextVy = bestDir[1]; return; }
+    }
+
+    // Random direction (bias toward continuing straight)
+    const rand = Math.random();
+    if (rand < 0.45) {
+      // Keep current direction
+      this.nextVx = this.vx;
+      this.nextVy = this.vy;
+    } else {
+      const chosen = valid[randInt(0, valid.length)];
+      this.nextVx = chosen[0];
+      this.nextVy = chosen[1];
+    }
+  }
+
+  // ---- DRAW ----
+  draw(camX, camY) {
+    if (!this.alive) return;
+
+    const sx = this.drawX - camX;
+    const sy = this.drawY - camY;
+    const r  = CONFIG.CELL * 0.44;
+
+    // Glow behind head
+    ctx.save();
+    ctx.shadowColor = this.skin.glowColor || this.skin.color;
+    ctx.shadowBlur  = 18;
+    ctx.fillStyle   = this.skin.color;
+
+    // Draw rounded square snake head
+    roundRect(ctx, sx - r, sy - r, r * 2, r * 2, r * 0.45);
+    ctx.fill();
+    ctx.restore();
+
+    // Eyes
+    const eyeOff  = r * 0.3;
+    const eyeR    = r * 0.22;
+    // Determine eye direction from velocity
+    const eyeDirX = this.vx !== 0 ? Math.sign(this.vx) : 0;
+    const eyeDirY = this.vy !== 0 ? Math.sign(this.vy) : 0;
+
+    const eye1X = sx + eyeDirX * eyeR * 0.5 + (eyeDirY !== 0 ? -eyeOff : 0);
+    const eye1Y = sy + eyeDirY * eyeR * 0.5 + (eyeDirX !== 0 ? -eyeOff : 0);
+    const eye2X = sx + eyeDirX * eyeR * 0.5 + (eyeDirY !== 0 ?  eyeOff : 0);
+    const eye2Y = sy + eyeDirY * eyeR * 0.5 + (eyeDirX !== 0 ?  eyeOff : 0);
+
+    ctx.fillStyle = 'white';
+    drawCircle(ctx, eye1X, eye1Y, eyeR);
+    drawCircle(ctx, eye2X, eye2Y, eyeR);
+
+    ctx.fillStyle = '#1a1a2e';
+    drawCircle(ctx, eye1X + eyeDirX * eyeR * 0.3, eye1Y + eyeDirY * eyeR * 0.3, eyeR * 0.55);
+    drawCircle(ctx, eye2X + eyeDirX * eyeR * 0.3, eye2Y + eyeDirY * eyeR * 0.3, eyeR * 0.55);
+
+    // White pupil shine
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    drawCircle(ctx, eye1X + eyeDirX * eyeR * 0.3 - eyeR * 0.15, eye1Y + eyeDirY * eyeR * 0.3 - eyeR * 0.15, eyeR * 0.2);
+    drawCircle(ctx, eye2X + eyeDirX * eyeR * 0.3 - eyeR * 0.15, eye2Y + eyeDirY * eyeR * 0.3 - eyeR * 0.15, eyeR * 0.2);
+  }
+}
+
+// ---- CANVAS HELPERS ----
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function drawCircle(ctx, x, y, r) {
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// ============================================================
+// PARTICLES & VISUAL FX
+// ============================================================
+const SPARKLES = ['✨', '⭐', '💫', '🌟', '⚡', '💥'];
+
+function spawnDeathParticles(wx, wy, color) {
+  for (let i = 0; i < 8; i++) {
+    particles.push({
+      x: wx, y: wy,
+      vx: (Math.random() - 0.5) * 6,
+      vy: (Math.random() - 0.5) * 6,
+      life: 1.0,
+      decay: 0.02 + Math.random() * 0.015,
+      emoji: SPARKLES[randInt(0, SPARKLES.length)],
+      size: 14 + randInt(0, 12),
+    });
+  }
+}
+
+function spawnFillParticles(wx, wy, color) {
+  for (let i = 0; i < 5; i++) {
+    particles.push({
+      x: wx, y: wy,
+      vx: (Math.random() - 0.5) * 4,
+      vy: -2 - Math.random() * 3,
+      life: 1.0,
+      decay: 0.025 + Math.random() * 0.01,
+      emoji: ['🌟', '✨', '⭐'][randInt(0, 3)],
+      size: 12 + randInt(0, 8),
+    });
+  }
+}
+
+// ============================================================
+// AUDIO (Web Audio API - soft synthesized tones)
+// ============================================================
+let audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch (e) {}
+  }
+  return audioCtx;
+}
+
+function playTone(freq, vol, dur) {
+  const ac = getAudioCtx();
+  if (!ac) return;
+  try {
+    const osc  = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.connect(gain);
+    gain.connect(ac.destination);
+    osc.frequency.value = freq;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(vol, ac.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + dur);
+    osc.start(ac.currentTime);
+    osc.stop(ac.currentTime + dur);
+  } catch (e) {}
+}
+
+// ============================================================
+// GAME INITIALIZATION
+// ============================================================
+function initGame() {
+  // Reset territory grid
+  territory = new Uint8Array(GRID_W * GRID_H);
+  players   = [];
+  particles = [];
+  fillFlashes = [];
+  state.score = 0;
+  state.difficultyTimer = 0;
+
+  const skin = SKINS[state.selectedSkin];
+
+  // Human player starts in center
+  const playerGx = Math.floor(GRID_W / 2);
+  const playerGy = Math.floor(GRID_H / 2);
+  players.push(new Snake(1, skin, true, playerGx, playerGy));
+
+  // Spawn 3 bots at corners / spread positions
+  const botPositions = [
+    [Math.floor(GRID_W * 0.2), Math.floor(GRID_H * 0.2)],
+    [Math.floor(GRID_W * 0.8), Math.floor(GRID_H * 0.25)],
+    [Math.floor(GRID_W * 0.2), Math.floor(GRID_H * 0.75)],
+  ];
+  for (let i = 0; i < CONFIG.BOT_COUNT; i++) {
+    const bskin = BOT_SKINS[i % BOT_SKINS.length];
+    const [bgx, bgy] = botPositions[i];
+    players.push(new Snake(i + 2, bskin, false, bgx, bgy));
+  }
+
+  state.running = true;
+  state.paused  = false;
+  lastFrameTime = performance.now();
+}
+
+// ============================================================
+// TRAIL-COLLISION CHECK (cross-player trails)
+// ============================================================
+function checkCrossCollisions() {
+  for (const p of players) {
+    if (!p.alive || p.trail.length === 0) continue;
+    for (const q of players) {
+      if (!q.alive || q.id === p.id) continue;
+      // Check if q's HEAD is on p's trail
+      const key = `${q.gx},${q.gy}`;
+      if (p.trailSet.has(key)) {
+        if (p.isHuman) {
+          // Enemy is on player's trail → player dies
+          triggerGameOver();
+          return;
+        } else if (q.isHuman) {
+          // Player is on bot's trail
+          triggerGameOver();
+          return;
+        } else {
+          // Bot p's trail gets cut by bot q
+          p._botDie();
+        }
+      }
+    }
+  }
+}
+
+// ============================================================
+// GAME OVER
+// ============================================================
+function triggerGameOver() {
+  state.running = false;
+  const player = players[0];
+  const total  = GRID_W * GRID_H;
+  const pct    = ((player.area / total) * 100).toFixed(1);
+  const score  = player.area;
+
+  document.getElementById('finalScore').textContent = score;
+  document.getElementById('finalArea').textContent  = pct + '%';
+
+  let msg = 'Keep trying, Hero!';
+  if (pct >= 30) msg = '🏆 Champion Territory!';
+  else if (pct >= 15) msg = '🌟 Amazing effort!';
+  else if (pct >= 5)  msg = '💪 Great start!';
+  document.getElementById('gameOverMsg').textContent = msg;
+
+  // Change icon based on score
+  const icon = document.querySelector('.game-over-icon');
+  if (pct >= 20) icon.textContent = '🏆';
+  else if (pct >= 10) icon.textContent = '🌟';
+  else icon.textContent = '💫';
+
+  playTone(220, 0.12, 0.4);
+  setTimeout(() => { showScreen('gameOverScreen'); }, 300);
+}
+
+// ============================================================
+// HUD UPDATE
+// ============================================================
+function updateHUD() {
+  const p     = players[0];
+  const total = GRID_W * GRID_H;
+  const pct   = ((p.area / total) * 100).toFixed(1);
+  document.getElementById('scoreVal').textContent = p.area;
+  document.getElementById('areaVal').textContent  = pct + '%';
+}
+
+// ============================================================
+// DIFFICULTY SCALING
+// ============================================================
+function updateDifficulty(dt) {
+  state.difficultyTimer += dt;
+  if (state.difficultyTimer >= CONFIG.DIFFICULTY_INTERVAL) {
+    state.difficultyTimer = 0;
+    for (const p of players) {
+      if (!p.isHuman && p.speed < CONFIG.MAX_BOT_SPEED) {
+        p.speed += 0.08;
+        // Update current velocity magnitude
+        const mag = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+        if (mag > 0) {
+          p.vx = (p.vx / mag) * p.speed;
+          p.vy = (p.vy / mag) * p.speed;
+        }
+      }
+    }
+  }
+}
+
+// ============================================================
+// RENDERING
+// ============================================================
+function render() {
+  const player = players[0];
+  if (!player || !player.alive) return;
+
+  // Camera: center on player's smooth draw position
+  const camX = player.drawX - canvasW / 2;
+  const camY = player.drawY - canvasH / 2;
+
+  // ---- BACKGROUND ----
+  ctx.fillStyle = '#1a2744';
+  ctx.fillRect(0, 0, canvasW, canvasH);
+
+  // ---- SOFT GRID ----
+  drawGrid(camX, camY);
+
+  // ---- TERRITORY ----
+  drawTerritory(camX, camY);
+
+  // ---- TRAILS ----
+  drawTrails(camX, camY);
+
+  // ---- FILL FLASHES ----
+  drawFillFlashes(camX, camY);
+
+  // ---- MAP BORDER ----
+  drawMapBorder(camX, camY);
+
+  // ---- SNAKES ----
+  for (const p of players) p.draw(camX, camY);
+
+  // ---- PARTICLES ----
+  drawParticles(camX, camY);
+}
+
+// ---- GRID ----
+function drawGrid(camX, camY) {
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth   = 0.5;
+
+  const startGx = Math.max(0, Math.floor(camX / CONFIG.CELL) - 1);
+  const endGx   = Math.min(GRID_W, Math.ceil((camX + canvasW) / CONFIG.CELL) + 1);
+  const startGy = Math.max(0, Math.floor(camY / CONFIG.CELL) - 1);
+  const endGy   = Math.min(GRID_H, Math.ceil((camY + canvasH) / CONFIG.CELL) + 1);
+
+  ctx.beginPath();
+  for (let gx = startGx; gx <= endGx; gx++) {
+    const sx = gx * CONFIG.CELL - camX;
+    ctx.moveTo(sx, 0); ctx.lineTo(sx, canvasH);
+  }
+  for (let gy = startGy; gy <= endGy; gy++) {
+    const sy = gy * CONFIG.CELL - camY;
+    ctx.moveTo(0, sy); ctx.lineTo(canvasW, sy);
+  }
+  ctx.stroke();
+}
+
+// ---- TERRITORY ----
+function drawTerritory(camX, camY) {
+  const startGx = Math.max(0, Math.floor(camX / CONFIG.CELL));
+  const endGx   = Math.min(GRID_W, Math.ceil((camX + canvasW) / CONFIG.CELL));
+  const startGy = Math.max(0, Math.floor(camY / CONFIG.CELL));
+  const endGy   = Math.min(GRID_H, Math.ceil((camY + canvasH) / CONFIG.CELL));
+
+  const C = CONFIG.CELL;
+
+  for (let gx = startGx; gx < endGx; gx++) {
+    for (let gy = startGy; gy < endGy; gy++) {
+      const tid = territory[gIdx(gx, gy)];
+      if (!tid) continue;
+      const owner = players.find(p => p.id === tid);
+      if (!owner) continue;
+
+      const sx = gx * C - camX;
+      const sy = gy * C - camY;
+
+      ctx.fillStyle = owner.skin.territory;
+      ctx.fillRect(sx, sy, C, C);
+
+      // Territory border: only draw edges facing empty/other territory
+      ctx.strokeStyle = owner.skin.territoryBorder + '55';
+      ctx.lineWidth   = 0.8;
+
+      // Top edge
+      if (!inGrid(gx, gy-1) || territory[gIdx(gx, gy-1)] !== tid) {
+        ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx + C, sy); ctx.stroke();
+      }
+      // Bottom
+      if (!inGrid(gx, gy+1) || territory[gIdx(gx, gy+1)] !== tid) {
+        ctx.beginPath(); ctx.moveTo(sx, sy+C); ctx.lineTo(sx+C, sy+C); ctx.stroke();
+      }
+      // Left
+      if (!inGrid(gx-1, gy) || territory[gIdx(gx-1, gy)] !== tid) {
+        ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx, sy+C); ctx.stroke();
+      }
+      // Right
+      if (!inGrid(gx+1, gy) || territory[gIdx(gx+1, gy)] !== tid) {
+        ctx.beginPath(); ctx.moveTo(sx+C, sy); ctx.lineTo(sx+C, sy+C); ctx.stroke();
+      }
+    }
+  }
+}
+
+// ---- TRAILS ----
+function drawTrails(camX, camY) {
+  const C = CONFIG.CELL;
+  const pad = 3;
+
+  for (const p of players) {
+    if (!p.alive || p.trail.length === 0) continue;
+
+    for (let i = 0; i < p.trail.length; i++) {
+      const t  = p.trail[i];
+      const sx = t.gx * C - camX;
+      const sy = t.gy * C - camY;
+
+      // Cull off-screen
+      if (sx < -C || sx > canvasW + C || sy < -C || sy > canvasH + C) continue;
+
+      // Glow outer
+      ctx.save();
+      ctx.shadowColor = p.skin.glowColor || p.skin.color;
+      ctx.shadowBlur  = 12;
+      ctx.fillStyle   = p.skin.trailColor;
+
+      const progress = i / Math.max(1, p.trail.length - 1);
+      const alpha    = 0.5 + progress * 0.5;
+      ctx.globalAlpha = alpha;
+
+      roundRect(ctx, sx + pad, sy + pad, C - pad * 2, C - pad * 2, 5);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+}
+
+// ---- FILL FLASH EFFECT ----
+function drawFillFlashes(camX, camY) {
+  for (let i = fillFlashes.length - 1; i >= 0; i--) {
+    const f = fillFlashes[i];
+    f.r    += 12;
+    f.alpha -= 0.03;
+
+    if (f.alpha <= 0) { fillFlashes.splice(i, 1); continue; }
+
+    const sx = f.x - camX;
+    const sy = f.y - camY;
+
+    ctx.save();
+    ctx.globalAlpha = f.alpha;
+    ctx.strokeStyle = f.color;
+    ctx.lineWidth   = 3;
+    ctx.shadowColor = f.color;
+    ctx.shadowBlur  = 20;
+    ctx.beginPath();
+    ctx.arc(sx, sy, f.r, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+// ---- MAP BORDER ----
+function drawMapBorder(camX, camY) {
+  const sx = -camX, sy = -camY;
+  const w  = CONFIG.MAP_SIZE, h = CONFIG.MAP_SIZE;
+
+  ctx.save();
+  ctx.strokeStyle = '#FF6B35';
+  ctx.lineWidth   = 4;
+  ctx.shadowColor = '#FF6B35';
+  ctx.shadowBlur  = 12;
+  ctx.setLineDash([20, 10]);
+  ctx.strokeRect(sx, sy, w, h);
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+
+// ---- PARTICLES ----
+function drawParticles(camX, camY) {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const pt = particles[i];
+    pt.x  += pt.vx;
+    pt.y  += pt.vy;
+    pt.vy += 0.08; // gravity
+    pt.life -= pt.decay;
+
+    if (pt.life <= 0) { particles.splice(i, 1); continue; }
+
+    const sx = pt.x - camX;
+    const sy = pt.y - camY;
+
+    ctx.save();
+    ctx.globalAlpha = pt.life;
+    ctx.font        = `${pt.size}px serif`;
+    ctx.textAlign   = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(pt.emoji, sx, sy);
+    ctx.restore();
+  }
+}
+
+// ============================================================
+// GAME LOOP
+// ============================================================
+let lastFrameTime = 0;
+let animId = null;
+
+function gameLoop(timestamp) {
+  animId = requestAnimationFrame(gameLoop);
+
+  if (!state.running || state.paused) return;
+
+  const dt = Math.min(timestamp - lastFrameTime, 50); // cap at 50ms
+  lastFrameTime = timestamp;
+
+  // Update all players
+  for (const p of players) p.update(dt);
+
+  // Cross-collision checks
+  if (state.running) checkCrossCollisions();
+
+  // Difficulty
+  if (state.running) updateDifficulty(dt);
+
+  // Render
+  if (state.running) {
+    render();
+    updateHUD();
+  }
+}
+
+// ============================================================
+// INPUT: KEYBOARD
+// ============================================================
+const KEY_MAP = {
+  ArrowLeft:  [-1,  0],
+  ArrowRight: [ 1,  0],
+  ArrowUp:    [ 0, -1],
+  ArrowDown:  [ 0,  1],
+};
+
+document.addEventListener('keydown', e => {
+  if (!state.running || state.paused) return;
+  const dir = KEY_MAP[e.key];
+  if (dir) {
+    e.preventDefault();
+    const p   = players[0];
+    const spd = p.speed;
+    p.setDir(dir[0] * spd, dir[1] * spd);
+  }
+});
+
+// ============================================================
+// INPUT: TOUCH SWIPE
+// ============================================================
+let touchStartX = 0;
+let touchStartY = 0;
+const SWIPE_THRESHOLD = 25; // px
+
+document.getElementById('touchZone').addEventListener('touchstart', e => {
+  e.preventDefault();
+  const t = e.touches[0];
+  touchStartX = t.clientX;
+  touchStartY = t.clientY;
+}, { passive: false });
+
+document.getElementById('touchZone').addEventListener('touchmove', e => {
+  e.preventDefault();
+}, { passive: false });
+
+document.getElementById('touchZone').addEventListener('touchend', e => {
+  e.preventDefault();
+  if (!state.running || state.paused) return;
+
+  const t  = e.changedTouches[0];
+  const dx = t.clientX - touchStartX;
+  const dy = t.clientY - touchStartY;
+
+  if (Math.abs(dx) < SWIPE_THRESHOLD && Math.abs(dy) < SWIPE_THRESHOLD) return;
+
+  const p   = players[0];
+  const spd = p.speed;
+
+  if (Math.abs(dx) > Math.abs(dy)) {
+    p.setDir(dx > 0 ? spd : -spd, 0);
+  } else {
+    p.setDir(0, dy > 0 ? spd : -spd);
+  }
+}, { passive: false });
+
+// ============================================================
+// BUTTON HANDLERS
+// ============================================================
+document.getElementById('btnPlay').addEventListener('click', () => {
+  buildSkinGrid();
+  showScreen('skinScreen');
+});
+
+document.getElementById('btnBack').addEventListener('click', () => {
+  showScreen('startScreen');
+});
+
+document.getElementById('btnStartGame').addEventListener('click', () => {
+  showScreen('gameScreen');
+  initGame();
+  // Resume AudioContext on user gesture
+  getAudioCtx();
+  playTone(440, 0.1, 0.2);
+  setTimeout(() => playTone(554, 0.1, 0.2), 120);
+  setTimeout(() => playTone(659, 0.12, 0.3), 240);
+  lastFrameTime = performance.now();
+  if (!animId) animId = requestAnimationFrame(gameLoop);
+});
+
+document.getElementById('btnPause').addEventListener('click', () => {
+  state.paused = true;
+  showScreen('pauseScreen');
+  // also keep gameScreen visible beneath
+  document.getElementById('gameScreen').style.display = 'flex';
+});
+
+document.getElementById('btnResume').addEventListener('click', () => {
+  state.paused = false;
+  document.getElementById('pauseScreen').style.display = 'none';
+  lastFrameTime = performance.now();
+});
+
+document.getElementById('btnRestartPause').addEventListener('click', () => {
+  document.getElementById('pauseScreen').style.display = 'none';
+  showScreen('gameScreen');
+  initGame();
+  state.paused = false;
+  lastFrameTime = performance.now();
+});
+
+document.getElementById('btnMenuPause').addEventListener('click', () => {
+  state.running = false;
+  state.paused  = false;
+  document.getElementById('pauseScreen').style.display = 'none';
+  showScreen('startScreen');
+});
+
+document.getElementById('btnPlayAgain').addEventListener('click', () => {
+  showScreen('gameScreen');
+  initGame();
+  state.paused = false;
+  lastFrameTime = performance.now();
+  playTone(523, 0.1, 0.15);
+});
+
+document.getElementById('btnMainMenu').addEventListener('click', () => {
+  state.running = false;
+  showScreen('startScreen');
+});
+
+// ============================================================
+// BOOT
+// ============================================================
+showScreen('startScreen');
+animId = requestAnimationFrame(gameLoop); // start loop (will idle until game starts)
+
+</script>
+</body>
+</html>
