@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<title>Hero Zone! 🦸</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;800&display=swap');
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:#0d1117;font-family:'Nunito',sans-serif;user-select:none;touch-action:none}
+
+/* ── SCREENS ── */
+.screen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:10}
+.screen.active{display:flex}
+
+/* ── START SCREEN ── */
+#startScreen{
+  background:radial-gradient(ellipse at 60% 30%,#1a2a6c 0%,#0d1117 55%,#0d1117 100%);
+  overflow:hidden;
+}
+.s-orbs{position:absolute;inset:0;pointer-events:none}
+.orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:0.35;animation:orbFloat 8s ease-in-out infinite}
+.orb1{width:300px;height:300px;background:#3b82f6;top:-80px;left:-80px;animation-delay:0s}
+.orb2{width:250px;height:250px;background:#f59e0b;bottom:-60px;right:-60px;animation-delay:-3s}
+.orb3{width:200px;height:200px;background:#10b981;top:40%;left:50%;transform:translate(-50%,-50%);animation-delay:-6s}
+@keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(20px,-20px) scale(1.05)}66%{transform:translate(-10px,15px) scale(0.95)}}
+
+.start-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:18px;padding:24px}
+.logo-wrap{display:flex;flex-direction:column;align-items:center;line-height:0.9}
+.logo-hero{font-family:'Fredoka One',cursive;font-size:clamp(60px,18vw,100px);color:#fbbf24;text-shadow:0 4px 0 #b45309,0 0 40px rgba(251,191,36,0.5);letter-spacing:4px}
+.logo-zone{font-family:'Fredoka One',cursive;font-size:clamp(54px,16vw,90px);color:#34d399;text-shadow:0 4px 0 #065f46,0 0 40px rgba(52,211,153,0.4);letter-spacing:4px}
+.logo-sub{font-size:clamp(13px,3.5vw,17px);color:rgba(255,255,255,0.6);letter-spacing:2px;font-weight:800;margin-top:8px}
+.emoji-row{display:flex;gap:14px;font-size:clamp(28px,8vw,40px);margin:4px 0}
+.emoji-row span{display:inline-block;animation:floatUp 2s ease-in-out infinite}
+.emoji-row span:nth-child(2){animation-delay:.25s}
+.emoji-row span:nth-child(3){animation-delay:.5s}
+.emoji-row span:nth-child(4){animation-delay:.75s}
+.emoji-row span:nth-child(5){animation-delay:1s}
+@keyframes floatUp{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+/* ── SKIN SCREEN ── */
+#skinScreen{
+  background:radial-gradient(ellipse at 50% 0%,#1e2d5e 0%,#0d1117 70%);
+  padding:20px 16px 32px;gap:14px;overflow-y:auto;justify-content:flex-start;padding-top:28px
+}
+.skin-title{font-family:'Fredoka One',cursive;font-size:clamp(24px,7vw,36px);color:#fbbf24;text-shadow:0 3px 0 #92400e}
+.skins-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;width:100%;max-width:460px}
+.skin-card{
+  background:rgba(255,255,255,0.05);border:2.5px solid rgba(255,255,255,0.1);
+  border-radius:18px;padding:18px 12px 14px;display:flex;flex-direction:column;
+  align-items:center;gap:8px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden
+}
+.skin-card:active{transform:scale(0.96)}
+.skin-card.sel{border-color:var(--sc);background:rgba(255,255,255,0.1);box-shadow:0 0 20px var(--sc-glow)}
+.skin-card.sel::after{content:'✓';position:absolute;top:8px;right:10px;font-size:16px;color:var(--sc);font-weight:900}
+.sk-icon{font-size:46px;width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform .2s}
+.skin-card.sel .sk-icon{transform:scale(1.1)}
+.sk-name{font-family:'Fredoka One',cursive;font-size:15px;color:#fff}
+.sk-desc{font-size:11px;color:rgba(255,255,255,0.5);text-align:center;line-height:1.3}
+
+/* ── GAME SCREEN ── */
+#gameScreen{background:#0d1117;position:relative}
+#gameCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#touchOverlay{position:absolute;inset:0;z-index:5;touch-action:none}
+
+/* ── HUD ── */
+#hud{
+  position:absolute;top:0;left:0;right:0;z-index:20;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 14px;
+  background:linear-gradient(to bottom,rgba(0,0,0,0.65) 0%,transparent 100%);
+  pointer-events:none
+}
+.hud-pills{display:flex;gap:8px}
+.hud-pill{
+  background:rgba(0,0,0,0.5);border:1.5px solid rgba(255,255,255,0.15);
+  border-radius:12px;padding:5px 12px;display:flex;flex-direction:column;align-items:center;
+  backdrop-filter:blur(6px)
+}
+.hud-lbl{font-size:8px;letter-spacing:2px;color:rgba(255,255,255,0.4);font-weight:800;text-transform:uppercase}
+.hud-val{font-family:'Fredoka One',cursive;font-size:19px;color:#fbbf24;line-height:1;text-shadow:0 0 12px rgba(251,191,36,.7)}
+.btn-pause{
+  pointer-events:all;background:rgba(0,0,0,0.5);border:1.5px solid rgba(255,255,255,0.2);
+  border-radius:12px;color:white;font-size:20px;width:42px;height:42px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)
+}
+
+/* ── OVERLAY SCREENS ── */
+.ov-screen{
+  background:rgba(0,0,0,0.75);justify-content:center;align-items:center;
+  backdrop-filter:blur(8px);z-index:50
+}
+.popup{
+  background:linear-gradient(145deg,#1c2b5a,#0f1a38);
+  border:2.5px solid rgba(255,255,255,0.12);border-radius:26px;
+  padding:30px 26px;display:flex;flex-direction:column;align-items:center;gap:13px;
+  max-width:320px;width:90%;
+  box-shadow:0 24px 60px rgba(0,0,0,0.7),inset 0 1px 0 rgba(255,255,255,0.08)
+}
+.popup h2{font-family:'Fredoka One',cursive;font-size:30px;color:#fff}
+.pop-icon{font-size:54px;animation:popIn .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.go-title{font-family:'Fredoka One',cursive;font-size:38px;color:#fbbf24;text-shadow:0 3px 0 #92400e;animation:popIn .4s cubic-bezier(.34,1.56,.64,1)}
+.go-msg{font-size:15px;color:rgba(255,255,255,0.7);font-weight:700;text-align:center}
+.stat-row{display:flex;gap:12px;width:100%}
+.stat-box{flex:1;background:rgba(255,255,255,0.07);border-radius:14px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:3px}
+.stat-lbl{font-size:10px;letter-spacing:1px;color:rgba(255,255,255,0.45);font-weight:800;text-transform:uppercase}
+.stat-num{font-family:'Fredoka One',cursive;font-size:28px;color:#34d399}
+
+/* ── BUTTONS ── */
+.btn-main{
+  font-family:'Fredoka One',cursive;font-size:clamp(16px,5vw,21px);
+  background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;border:none;
+  border-radius:18px;padding:15px 36px;cursor:pointer;
+  box-shadow:0 5px 0 #991b1b,0 8px 20px rgba(239,68,68,.35);
+  transition:transform .1s,box-shadow .1s;text-shadow:0 1px 0 rgba(0,0,0,.3);
+  min-width:190px
+}
+.btn-main:active{transform:translateY(4px);box-shadow:0 1px 0 #991b1b,0 3px 10px rgba(239,68,68,.3)}
+.btn-main.bounce{animation:btnBounce 1.6s ease-in-out infinite}
+@keyframes btnBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.btn-sec{
+  font-family:'Fredoka One',cursive;font-size:15px;
+  background:rgba(255,255,255,0.09);color:#fff;
+  border:1.5px solid rgba(255,255,255,0.18);border-radius:16px;
+  padding:11px 24px;cursor:pointer;width:100%;transition:background .15s
+}
+.btn-sec:active{background:rgba(255,255,255,0.18)}
+.btn-ghost{
+  font-family:'Fredoka One',cursive;font-size:14px;
+  background:transparent;color:rgba(255,255,255,0.4);
+  border:1.5px solid rgba(255,255,255,0.12);border-radius:16px;
+  padding:9px 22px;cursor:pointer
+}
+
+/* ── BG PARTICLES (CSS only) ── */
+.bg-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.bp{position:absolute;border-radius:50%;animation:bpFloat linear infinite;opacity:0}
+@keyframes bpFloat{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:.4}90%{opacity:.2}100%{transform:translateY(-100px) scale(1);opacity:0}}
+</style>
+</head>
+<body>
+
+<!-- START SCREEN -->
+<div id="startScreen" class="screen active">
+  <div class="s-orbs"><div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div></div>
+  <div class="bg-particles" id="bgParticles"></div>
+  <div class="start-content">
+    <div class="logo-wrap">
+      <span class="logo-hero">HERO</span>
+      <span class="logo-zone">ZONE!</span>
+    </div>
+    <div class="logo-sub">CAPTURE · CONQUER · WIN</div>
+    <div class="emoji-row"><span>🦸</span><span>⚡</span><span>🛡️</span><span>💥</span><span>🌟</span></div>
+    <button class="btn-main bounce" id="btnPlay">▶ PLAY NOW!</button>
+  </div>
+</div>
+
+<!-- SKIN SCREEN -->
+<div id="skinScreen" class="screen">
+  <h2 class="skin-title">Choose Your Hero! 🦸</h2>
+  <div class="skins-grid" id="skinsGrid"></div>
+  <button class="btn-main" id="btnStartGame" style="margin-top:4px">LET'S GO! 🚀</button>
+  <button class="btn-ghost" id="btnBack" style="margin-top:6px">← Back</button>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="gameScreen" class="screen">
+  <canvas id="gameCanvas"></canvas>
+  <div id="touchOverlay"></div>
+  <div id="hud">
+    <div class="hud-pills">
+      <div class="hud-pill"><span class="hud-lbl">SCORE</span><span class="hud-val" id="hudScore">0</span></div>
+      <div class="hud-pill"><span class="hud-lbl">AREA</span><span class="hud-val" id="hudArea">0%</span></div>
+    </div>
+    <button class="btn-pause" id="btnPause">⏸</button>
+  </div>
+</div>
+
+<!-- PAUSE SCREEN -->
+<div id="pauseScreen" class="screen ov-screen">
+  <div class="popup">
+    <div class="pop-icon">⏸️</div>
+    <h2>Paused</h2>
+    <button class="btn-main" id="btnResume" style="min-width:0;padding:12px 28px;font-size:17px">▶ Resume</button>
+    <button class="btn-sec" id="btnRestartP">🔄 Restart</button>
+    <button class="btn-sec" id="btnMenuP">🏠 Menu</button>
+  </div>
+</div>
+
+<!-- GAME OVER SCREEN -->
+<div id="goScreen" class="screen ov-screen">
+  <div class="popup">
+    <div class="pop-icon" id="goIcon">💫</div>
+    <div class="go-title">AMAZING!</div>
+    <p class="go-msg" id="goMsg">You captured a lot!</p>
+    <div class="stat-row">
+      <div class="stat-box"><span class="stat-lbl">Score</span><span class="stat-num" id="goScore">0</span></div>
+      <div class="stat-box"><span class="stat-lbl">Area</span><span class="stat-num" id="goArea">0%</span></div>
+    </div>
+    <button class="btn-main bounce" id="btnPlayAgain">🔄 Play Again!</button>
+    <button class="btn-sec" id="btnMenu2">🏠 Menu</button>
+  </div>
+</div>
+
+<script>
+/*══════════════════════════════════════════════════════════════
+  HERO ZONE — Complete Rewrite
+  ✓ Smooth vector movement (delta-time)
+  ✓ Real swipe detection (touchstart / touchend)
+  ✓ Smooth snake body (circles + bezier)
+  ✓ Glowing trail lines
+  ✓ Animated territory fill
+  ✓ Polished kid-friendly UI
+══════════════════════════════════════════════════════════════*/
+'use strict';
+
+// ─────────────────────────────────────────────
+// CONSTANTS
+// ─────────────────────────────────────────────
+const MAP      = 2400;          // virtual map size px
+const CELL     = 26;            // grid cell size px (used for territory only)
+const GW       = Math.floor(MAP / CELL);
+const GH       = Math.floor(MAP / CELL);
+const P_SPEED  = 165;           // player px/s
+const B_SPEED  = P_SPEED * 0.68; // bots 32% slower
+const SNAKE_R  = 11;            // snake head/body radius px
+const SWIPE_TH = 30;            // px minimum swipe
+
+// ─────────────────────────────────────────────
+// SKINS
+// ─────────────────────────────────────────────
+const SKINS = [
+  {id:'armor', name:'Armor Hero',  emoji:'🤖', desc:'Red-Gold Power Suit',
+   body:'#FF4C4C', bodyB:'#CC1A1A', glow:'rgba(255,76,76,.7)',
+   trail:'rgba(220,40,40,.85)', territory:'rgba(255,76,76,0.22)', tBorder:'#FF4C4C'},
+
+  {id:'shield', name:'Shield Hero', emoji:'🛡️', desc:'Blue Shield of Justice',
+   body:'#3B9EFF', bodyB:'#1155CC', glow:'rgba(59,158,255,.7)',
+   trail:'rgba(30,100,220,.85)', territory:'rgba(59,158,255,0.22)', tBorder:'#3B9EFF'},
+
+  {id:'strong', name:'Strong Hero', emoji:'💪', desc:'Emerald Muscle Power',
+   body:'#22DD77', bodyB:'#0A7A3A', glow:'rgba(34,221,119,.7)',
+   trail:'rgba(10,160,60,.85)', territory:'rgba(34,221,119,0.22)', tBorder:'#22DD77'},
+
+  {id:'thunder', name:'Thunder Hero', emoji:'⚡', desc:'Electric Surge Power',
+   body:'#CC88FF', bodyB:'#6600BB', glow:'rgba(180,100,255,.75)',
+   trail:'rgba(130,50,220,.85)', territory:'rgba(180,100,255,0.22)', tBorder:'#CC88FF'},
+];
+
+const BOT_SKINS = [
+  {id:'b1', name:'Blaze',   emoji:'🔥',
+   body:'#FF8C00', bodyB:'#A84800', glow:'rgba(255,140,0,.7)',
+   trail:'rgba(200,90,0,.85)', territory:'rgba(255,140,0,0.2)', tBorder:'#FF8C00'},
+  {id:'b2', name:'Comet',   emoji:'☄️',
+   body:'#00CCDD', bodyB:'#006688', glow:'rgba(0,204,221,.7)',
+   trail:'rgba(0,140,170,.85)', territory:'rgba(0,204,221,0.2)', tBorder:'#00CCDD'},
+  {id:'b3', name:'Shadow',  emoji:'🌸',
+   body:'#FF66BB', bodyB:'#AA1166', glow:'rgba(255,102,187,.7)',
+   trail:'rgba(200,40,120,.85)', territory:'rgba(255,102,187,0.2)', tBorder:'#FF66BB'},
+];
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let selSkin   = 0;
+let territory;       // Uint8Array GRID
+let players   = [];
+let particles = [];
+let fillAnims = [];  // animated territory fills
+let running   = false;
+let paused    = false;
+let gameTime  = 0;
+
+// ─────────────────────────────────────────────
+// CANVAS
+// ─────────────────────────────────────────────
+const canvas = document.getElementById('gameCanvas');
+const ctx    = canvas.getContext('2d');
+let CW = 0, CH = 0;
+
+function resize(){
+  CW = canvas.width  = window.innerWidth;
+  CH = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ─────────────────────────────────────────────
+// SCREEN HELPER
+// ─────────────────────────────────────────────
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');s.style.display='';});
+  const el=document.getElementById(id);
+  el.classList.add('active'); el.style.display='flex';
+}
+
+// ─────────────────────────────────────────────
+// GRID HELPERS
+// ─────────────────────────────────────────────
+function gIdx(gx,gy){ return gy*GW+gx; }
+function inG(gx,gy){ return gx>=0&&gx<GW&&gy>=0&&gy<GH; }
+function px2g(p){ return Math.floor(p/CELL); }
+function g2px(g){ return g*CELL+CELL/2; }
+
+// ─────────────────────────────────────────────
+// SNAKE CLASS
+// ─────────────────────────────────────────────
+class Snake {
+  constructor(id, skin, human, sx, sy){
+    this.id     = id;
+    this.skin   = skin;
+    this.human  = human;
+    this.alive  = true;
+
+    // Position (px, center of head)
+    this.x = sx; this.y = sy;
+
+    // Direction unit vector
+    const spd = human ? P_SPEED : B_SPEED;
+    this.dx = spd; this.dy = 0;  // px/s
+    this.ndx= spd; this.ndy= 0;  // queued next dir
+
+    this.speed = spd;
+
+    // Body history: array of {x,y} pixel positions
+    this.body  = [];
+    this.BODY_LEN = 8; // segments to draw behind head
+
+    // Trail grid cells
+    this.trail    = [];        // [{gx,gy}]
+    this.trailSet = new Set(); // "gx,gy"
+    this.inHome   = true;
+
+    // Last processed grid cell
+    this.lgx = px2g(sx);
+    this.lgy = px2g(sy);
+
+    // AI timer & respawn
+    this.aiTick = 0;
+    this.respawnT= 0;
+    this.area = 0;
+
+    // Territory fill queue (for animation)
+    this.fillQueue = [];
+
+    // Claim starting territory
+    this._claimStart(px2g(sx), px2g(sy), 3);
+  }
+
+  _claimStart(gcx, gcy, r){
+    for(let dy=-r;dy<=r;dy++) for(let dx=-r;dx<=r;dx++){
+      const gx=gcx+dx, gy=gcy+dy;
+      if(inG(gx,gy)){ territory[gIdx(gx,gy)]=this.id; this.area++; }
+    }
+  }
+
+  get gx(){ return px2g(this.x); }
+  get gy(){ return px2g(this.y); }
+
+  // ── SET DIRECTION (prevent 180 reversal) ──
+  setDir(dx,dy){
+    // Block exact reverse
+    if(this.dx!==0 && dx/this.speed === -(this.dx/this.speed)) return;
+    if(this.dy!==0 && dy/this.speed === -(this.dy/this.speed)) return;
+    this.ndx=dx; this.ndy=dy;
+  }
+
+  // ── UPDATE ──
+  update(dt){
+    if(!this.alive){
+      if(!this.human){ this.respawnT-=dt*1000; if(this.respawnT<=0) this._respawn(); }
+      return;
+    }
+
+    if(!this.human) this._ai(dt);
+
+    // Apply queued direction
+    this.dx = this.ndx; this.dy = this.ndy;
+
+    // Move
+    this.x += this.dx * dt;
+    this.y += this.dy * dt;
+
+    // Store body history
+    this.body.unshift({x:this.x, y:this.y});
+    if(this.body.length > this.BODY_LEN * 3) this.body.length = this.BODY_LEN * 3;
+
+    // Boundary
+    const m = SNAKE_R;
+    if(this.x<m||this.x>MAP-m||this.y<m||this.y>MAP-m){
+      if(this.human){ triggerDeath(); return; }
+      this.x=Math.max(m,Math.min(MAP-m,this.x));
+      this.y=Math.max(m,Math.min(MAP-m,this.y));
+      this._bounceBot(); return;
+    }
+
+    // Grid cell change
+    const cgx=this.gx, cgy=this.gy;
+    if(cgx===this.lgx && cgy===this.lgy) return;
+    this.lgx=cgx; this.lgy=cgy;
+    if(!inG(cgx,cgy)) return;
+
+    const cell = territory[gIdx(cgx,cgy)];
+
+    if(cell===this.id){
+      // Back home — fill!
+      if(this.trail.length>0) this._fillArea();
+      this.inHome=true;
+    } else {
+      const key=`${cgx},${cgy}`;
+      if(this.trailSet.has(key)){
+        if(this.human){ triggerDeath(); return; }
+        else { this._botDie(); return; }
+      }
+      this.inHome=false;
+      this.trail.push({gx:cgx,gy:cgy});
+      this.trailSet.add(key);
+    }
+  }
+
+  // ── FILL ENCLOSED AREA ──
+  _fillArea(){
+    // Stamp trail into territory first
+    for(const t of this.trail){
+      if(inG(t.gx,t.gy)) territory[gIdx(t.gx,t.gy)]=this.id;
+    }
+    this.trail=[]; this.trailSet.clear();
+
+    // BFS from all border cells NOT owned by this snake
+    const vis = new Uint8Array(GW*GH);
+    const q=[]; let qi=0;
+    const push=(gx,gy)=>{
+      if(!inG(gx,gy)) return;
+      const i=gIdx(gx,gy);
+      if(vis[i]||territory[i]===this.id) return;
+      vis[i]=1; q.push(gx,gy);
+    };
+    for(let g=0;g<GW;g++){ push(g,0); push(g,GH-1); }
+    for(let g=0;g<GH;g++){ push(0,g); push(GW-1,g); }
+    while(qi<q.length){
+      const gx=q[qi++], gy=q[qi++];
+      push(gx-1,gy); push(gx+1,gy); push(gx,gy-1); push(gx,gy+1);
+    }
+
+    // Collect new cells to claim
+    const newCells=[];
+    for(let i=0;i<GW*GH;i++){
+      if(!vis[i] && territory[i]!==this.id){ territory[i]=this.id; newCells.push(i); }
+    }
+
+    // Recount all
+    for(const p of players) p._recount();
+
+    // Animated fill
+    if(newCells.length>0){
+      fillAnims.push({cells:newCells, skin:this.skin, alpha:0, growing:true});
+      spawnFillParticles(this.x, this.y, this.skin.body);
+      playTone(523,.07,.12); setTimeout(()=>playTone(659,.07,.12),100); setTimeout(()=>playTone(784,.08,.15),200);
+    }
+  }
+
+  _recount(){
+    let n=0; for(let i=0;i<territory.length;i++) if(territory[i]===this.id) n++;
+    this.area=n;
+  }
+
+  // ── BOT DEATH ──
+  _botDie(){
+    for(let i=0;i<territory.length;i++) if(territory[i]===this.id) territory[i]=0;
+    for(const t of this.trail) if(inG(t.gx,t.gy)) territory[gIdx(t.gx,t.gy)]=0;
+    this.trail=[]; this.trailSet.clear(); this.area=0;
+    this.alive=false; this.respawnT=3500;
+    spawnDeathParticles(this.x,this.y,this.skin.body);
+    playTone(220,.1,.25);
+  }
+
+  _respawn(){
+    let rx=g2px(3+Math.floor(Math.random()*(GW-6)));
+    let ry=g2px(3+Math.floor(Math.random()*(GH-6)));
+    this.x=rx; this.y=ry; this.body=[];
+    this.dx=this.speed; this.dy=0; this.ndx=this.speed; this.ndy=0;
+    this.inHome=true; this.alive=true;
+    this.trail=[]; this.trailSet.clear();
+    this.lgx=-99; this.lgy=-99;
+    this._claimStart(px2g(rx),px2g(ry),2);
+  }
+
+  _bounceBot(){
+    const m=SNAKE_R*2;
+    if(this.x<m||this.x>MAP-m){ this.ndx=-this.dx; this.dx=-this.dx; }
+    if(this.y<m||this.y>MAP-m){ this.ndy=-this.dy; this.dy=-this.dy; }
+  }
+
+  /
