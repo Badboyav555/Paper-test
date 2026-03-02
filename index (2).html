@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZONE.IO</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a0f;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  #gameContainer {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  #gameCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  #hud {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 16px 20px;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .hud-panel {
+    background: rgba(10, 10, 20, 0.85);
+    border: 1px solid rgba(0, 255, 180, 0.3);
+    padding: 10px 16px;
+    border-radius: 4px;
+    backdrop-filter: blur(8px);
+  }
+
+  .hud-label {
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: rgba(0, 255, 180, 0.5);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+
+  .hud-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: #00ffb4;
+    text-shadow: 0 0 20px rgba(0, 255, 180, 0.6);
+  }
+
+  .hud-value.small { font-size: 14px; }
+
+  #leaderboard {
+    position: absolute;
+    top: 80px;
+    right: 20px;
+    background: rgba(10, 10, 20, 0.85);
+    border: 1px solid rgba(0, 255, 180, 0.2);
+    padding: 12px 16px;
+    border-radius: 4px;
+    min-width: 160px;
+    backdrop-filter: blur(8px);
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  #leaderboard .lb-title {
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: rgba(0, 255, 180, 0.5);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(0, 255, 180, 0.15);
+    padding-bottom: 6px;
+  }
+
+  .lb-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+    font-size: 11px;
+    gap: 12px;
+  }
+
+  .lb-name { display: flex; align-items: center; gap: 6px; }
+  .lb-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+  .lb-pct { color: rgba(255,255,255,0.7); }
+
+  #overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.88);
+    z-index: 20;
+    backdrop-filter: blur(4px);
+  }
+
+  #overlay.hidden { display: none; }
+
+  .overlay-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 64px;
+    font-weight: 900;
+    color: #00ffb4;
+    letter-spacing: 8px;
+    text-shadow: 0 0 40px rgba(0,255,180,0.8), 0 0 80px rgba(0,255,180,0.3);
+    margin-bottom: 8px;
+  }
+
+  .overlay-subtitle {
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: rgba(0,255,180,0.5);
+    margin-bottom: 48px;
+  }
+
+  .overlay-gameover {
+    font-family: 'Orbitron', monospace;
+    font-size: 48px;
+    font-weight: 900;
+    color: #ff4466;
+    letter-spacing: 6px;
+    text-shadow: 0 0 40px rgba(255,68,102,0.8);
+    margin-bottom: 16px;
+  }
+
+  .overlay-score {
+    font-family: 'Orbitron', monospace;
+    font-size: 18px;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 40px;
+    letter-spacing: 2px;
+  }
+
+  .btn {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    padding: 14px 40px;
+    border: 2px solid #00ffb4;
+    background: transparent;
+    color: #00ffb4;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #00ffb4;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.2s;
+    z-index: -1;
+  }
+
+  .btn:hover::before { transform: scaleX(1); }
+  .btn:hover { color: #0a0a0f; }
+
+  .controls-hint {
+    margin-top: 32px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.25);
+  }
+
+  #fps {
+    position: absolute;
+    bottom: 10px;
+    left: 16px;
+    font-size: 10px;
+    color: rgba(255,255,255,0.2);
+    pointer-events: none;
+    z-index: 10;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+<div id="gameContainer">
+  <canvas id="gameCanvas"></canvas>
+
+  <div id="hud">
+    <div class="hud-panel">
+      <div class="hud-label">Territory</div>
+      <div class="hud-value" id="scoreDisplay">0%</div>
+    </div>
+    <div class="hud-panel">
+      <div class="hud-label">Score</div>
+      <div class="hud-value" id="areaDisplay">0</div>
+    </div>
+  </div>
+
+  <div id="leaderboard">
+    <div class="lb-title">Leaderboard</div>
+    <div id="lbEntries"></div>
+  </div>
+
+  <div id="fps">FPS: 0</div>
+
+  <div id="overlay">
+    <div id="overlayContent">
+      <div class="overlay-title">ZONE.IO</div>
+      <div class="overlay-subtitle">CLAIM YOUR TERRITORY</div>
+      <button class="btn" id="startBtn">START GAME</button>
+      <div class="controls-hint">ARROW KEYS TO MOVE · CLAIM TERRITORY · ELIMINATE ENEMIES</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// --- Constants ---
+const MAP_SIZE = 2000;
+const CELL = 20;
+const GRID_W = MAP_SIZE / CELL;
+const GRID_H = MAP_SIZE / CELL;
+const SPEED = 3;
+
+const PLAYER_COLORS = [
+  { fill: '#00ffb4', trail: '#00c87e', name: 'YOU' },
+  { fill: '#ff4466', trail: '#cc1133', name: 'RED' },
+  { fill: '#ffaa00', trail: '#cc7700', name: 'ORG' },
+  { fill: '#aa44ff', trail: '#7711cc', name: 'PRP' },
+  { fill: '#44aaff', trail: '#1177cc', name: 'BLU' },
+];
+
+// territory grid: 0=empty, 1..N = player id
+let territory = new Uint8Array(GRID_W * GRID_H);
+
+let players = [];
+let gameRunning = false;
+let animId;
+let lastTime = 0;
+let fps = 0;
+let fpsCounter = 0;
+let fpsTimer = 0;
+
+function gIdx(gx, gy) { return gy * GRID_W + gx; }
+function inGrid(gx, gy) { return gx >= 0 && gx < GRID_W && gy >= 0 && gy < GRID_H; }
+
+class Player {
+  constructor(id, x, y, colorIdx, isHuman) {
+    this.id = id;
+    this.colorIdx = colorIdx;
+    this.color = PLAYER_COLORS[colorIdx];
+    this.isHuman = isHuman;
+    this.x = x; // pixel position (center)
+    this.y = y;
+    this.vx = SPEED; this.vy = 0;
+    this.nextVx = SPEED; this.nextVy = 0;
+    this.alive = true;
+    this.trail = []; // array of {gx, gy} grid cells
+    this.trailSet = new Set();
+    this.inTerritory = true;
+    this.area = 0;
+    this.aiTimer = 0;
+    this.aiDir = 0; // 0=right,1=down,2=left,3=up
+    this.lastGx = -1; this.lastGy = -1;
+    this.respawnTimer = 0;
+
+    // claim starting territory
+    this.claimStart(Math.floor(x/CELL), Math.floor(y/CELL), 3);
+  }
+
+  claimStart(gcx, gcy, radius) {
+    for(let dy=-radius; dy<=radius; dy++) {
+      for(let dx=-radius; dx<=radius; dx++) {
+        const gx = gcx+dx, gy = gcy+dy;
+        if(inGrid(gx,gy)) {
+          territory[gIdx(gx,gy)] = this.id;
+          this.area++;
+        }
+      }
+    }
+  }
+
+  get gx() { return Math.floor(this.x / CELL); }
+  get gy() { return Math.floor(this.y / CELL); }
+
+  setDir(vx, vy) {
+    // prevent 180 reverse
+    if(vx !== 0 && vx === -this.vx) return;
+    if(vy !== 0 && vy === -this.vy) return;
+    this.nextVx = vx; this.nextVy = vy;
+  }
+
+  update(dt) {
+    if(!this.alive) {
+      this.respawnTimer -= dt;
+      if(this.respawnTimer <= 0 && !this.isHuman) {
+        this.respawn();
+      }
+      return;
+    }
+
+    if(!this.isHuman) this.aiUpdate(dt);
+
+    // apply direction change only on grid alignment
+    const alignX = Math.abs(this.x % CELL - CELL/2) < SPEED + 1;
+    const alignY = Math.abs(this.y % CELL - CELL/2) < SPEED + 1;
+
+    if((this.nextVx !== 0 && alignY) || (this.nextVy !== 0 && alignX)) {
+      if(this.nextVx !== 0) {
+        this.vx = this.nextVx; this.vy = 0;
+        this.y = Math.round(this.y / CELL) * CELL + CELL/2;
+      } else {
+        this.vy = this.nextVy; this.vx = 0;
+        this.x = Math.round(this.x / CELL) * CELL + CELL/2;
+      }
+    }
+
+    this.x += this.vx;
+    this.y += this.vy;
+
+    // boundary bounce for bots, kill for player
+    if(this.x < CELL/2) { this.x = CELL/2; if(!this.isHuman) { this.vx = SPEED; this.nextVx = SPEED; this.vy = 0; this.nextVy = 0; } }
+    if(this.x > MAP_SIZE - CELL/2) { this.x = MAP_SIZE - CELL/2; if(!this.isHuman) { this.vx = -SPEED; this.nextVx = -SPEED; this.vy = 0; this.nextVy = 0; } }
+    if(this.y < CELL/2) { this.y = CELL/2; if(!this.isHuman) { this.vy = SPEED; this.nextVy = SPEED; this.vx = 0; this.nextVx = 0; } }
+    if(this.y > MAP_SIZE - CELL/2) { this.y = MAP_SIZE - CELL/2; if(!this.isHuman) { this.vy = -SPEED; this.nextVy = -SPEED; this.vx = 0; this.nextVx = 0; } }
+
+    const cgx = this.gx, cgy = this.gy;
+    if(cgx === this.lastGx && cgy === this.lastGy) return;
+    this.lastGx = cgx; this.lastGy = cgy;
+
+    if(!inGrid(cgx,cgy)) { if(this.isHuman) die(); return; }
+
+    const cell = territory[gIdx(cgx, cgy)];
+
+    if(cell === this.id) {
+      // back in own territory
+      if(this.trail.length > 0) {
+        this.fillTrail();
+      }
+      this.inTerritory = true;
+    } else {
+      // outside territory
+      const tk = cgx + ',' + cgy;
+      if(this.trailSet.has(tk)) {
+        // hit own trail!
+        if(this.isHuman) { die(); return; }
+        else { this.killBot(); return; }
+      }
+      this.inTerritory = false;
+      this.trail.push({gx: cgx, gy: cgy});
+      this.trailSet.add(tk);
+    }
+  }
+
+  fillTrail() {
+    // First mark trail as territory
+    for(const t of this.trail) {
+      territory[gIdx(t.gx, t.gy)] = this.id;
+    }
+    this.trail = [];
+    this.trailSet.clear();
+
+    // Flood fill from outside to find cells NOT owned after trail
+    // Use a simple scanline flood fill from border
+    const visited = new Uint8Array(GRID_W * GRID_H);
+    const queue = [];
+
+    // seed from all border cells that aren't ours
+    for(let gx=0; gx<GRID_W; gx++) {
+      for(const gy of [0, GRID_H-1]) {
+        if(territory[gIdx(gx,gy)] !== this.id && !visited[gIdx(gx,gy)]) {
+          visited[gIdx(gx,gy)] = 1;
+          queue.push(gx, gy);
+        }
+      }
+    }
+    for(let gy=0; gy<GRID_H; gy++) {
+      for(const gx of [0, GRID_W-1]) {
+        if(territory[gIdx(gx,gy)] !== this.id && !visited[gIdx(gx,gy)]) {
+          visited[gIdx(gx,gy)] = 1;
+          queue.push(gx, gy);
+        }
+      }
+    }
+
+    let qi = 0;
+    while(qi < queue.length) {
+      const gx = queue[qi++], gy = queue[qi++];
+      const neighbors = [[gx-1,gy],[gx+1,gy],[gx,gy-1],[gx,gy+1]];
+      for(const [nx,ny] of neighbors) {
+        if(!inGrid(nx,ny)) continue;
+        const ni = gIdx(nx,ny);
+        if(visited[ni] || territory[ni] === this.id) continue;
+        visited[ni] = 1;
+        queue.push(nx, ny);
+      }
+    }
+
+    // Any cell not visited and not ours → enclosed → claim it
+    let filled = 0;
+    for(let i=0; i<GRID_W*GRID_H; i++) {
+      if(!visited[i] && territory[i] !== this.id) {
+        territory[i] = this.id;
+        filled++;
+      }
+    }
+
+    // Recount area
+    this.recountArea();
+    for(const p of players) {
+      if(p.id !== this.id) p.recountArea();
+    }
+  }
+
+  recountArea() {
+    let count = 0;
+    for(let i=0; i<territory.length; i++) if(territory[i]===this.id) count++;
+    this.area = count;
+  }
+
+  killBot() {
+    // clear their territory
+    for(let i=0; i<territory.length; i++) if(territory[i]===this.id) territory[i]=0;
+    for(const t of this.trail) territory[gIdx(t.gx,t.gy)] = 0;
+    this.trail = []; this.trailSet.clear();
+    this.area = 0;
+    this.alive = false;
+    this.respawnTimer = 3000;
+  }
+
+  respawn() {
+    let rx, ry;
+    do {
+      rx = CELL * (5 + Math.floor(Math.random()*(GRID_W-10))) + CELL/2;
+      ry = CELL * (5 + Math.floor(Math.random()*(GRID_H-10))) + CELL/2;
+    } while(territory[gIdx(Math.floor(rx/CELL), Math.floor(ry/CELL))] !== 0);
+
+    this.x = rx; this.y = ry;
+    this.vx = SPEED; this.vy = 0;
+    this.nextVx = SPEED; this.nextVy = 0;
+    this.inTerritory = true;
+    this.alive = true;
+    this.trail = []; this.trailSet.clear();
+    this.lastGx = -1; this.lastGy = -1;
+    this.claimStart(Math.floor(rx/CELL), Math.floor(ry/CELL), 2);
+  }
+
+  aiUpdate(dt) {
+    this.aiTimer -= dt;
+    if(this.aiTimer > 0) return;
+    this.aiTimer = 300 + Math.random() * 700;
+
+    // Simple AI: if outside territory, try to return; else explore
+    const dirs = [[1,0],[0,1],[-1,0],[0,-1]];
+
+    if(!this.inTerritory && this.trail.length > 20) {
+      // Try to head back toward own territory
+      let bestDist = Infinity, bestDir = null;
+      for(const [dx,dy] of dirs) {
+        if(dx === -this.vx && dy === -this.vy && (this.vx!==0||this.vy!==0)) continue;
+        const nx = this.gx + dx*5, ny = this.gy + dy*5;
+        if(!inGrid(nx,ny)) continue;
+        // find nearest own territory cell
+        let minD = Infinity;
+        for(let i=0; i<territory.length; i++) {
+          if(territory[i]===this.id) {
+            const tx = (i%GRID_W), ty = Math.floor(i/GRID_W);
+            const d = Math.abs(tx-this.gx)+Math.abs(ty-this.gy);
+            if(d<minD) minD=d;
+          }
+        }
+        if(minD < bestDist) { bestDist=minD; bestDir=[dx,dy]; }
+      }
+      if(bestDir) { this.nextVx=bestDir[0]*SPEED; this.nextVy=bestDir[1]*SPEED; return; }
+    }
+
+    // random direction change
+    const validDirs = dirs.filter(([dx,dy]) => {
+      if(dx===-this.vx/SPEED && dy===-this.vy/SPEED) return false;
+      const nx=this.gx+dx*3, ny=this.gy+dy*3;
+      return inGrid(nx,ny);
+    });
+    if(validDirs.length > 0 && Math.random() < 0.5) {
+      const d = validDirs[Math.floor(Math.random()*validDirs.length)];
+      this.nextVx = d[0]*SPEED; this.nextVy = d[1]*SPEED;
+    }
+  }
+
+  draw(camX, camY) {
+    if(!this.alive) return;
+    const sx = this.x - camX, sy = this.y - camY;
+    const s = CELL * 0.75;
+
+    // player square
+    ctx.fillStyle = this.color.fill;
+    ctx.shadowColor = this.color.fill;
+    ctx.shadowBlur = 15;
+    ctx.fillRect(sx - s/2, sy - s/2, s, s);
+    ctx.shadowBlur = 0;
+
+    // border
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(sx - s/2, sy - s/2, s, s);
+  }
+}
+
+function checkTrailCollisions() {
+  for(const p of players) {
+    if(!p.alive) continue;
+    for(const q of players) {
+      if(!q.alive || q.id === p.id) continue;
+      // Check if p is on q's trail
+      const k = p.gx + ',' + p.gy;
+      if(q.trailSet.has(k)) {
+        // q's trail gets cut -> kill q
+        if(q.isHuman) { die(); return; }
+        q.killBot();
+        if(p.isHuman) {
+          // bonus score
+        }
+      }
+    }
+  }
+}
+
+function die() {
+  gameRunning = false;
+  const player = players[0];
+  const pct = ((player.area / (GRID_W * GRID_H)) * 100).toFixed(1);
+  const oc = document.getElementById('overlayContent');
+  oc.innerHTML = `
+    <div class="overlay-gameover">ELIMINATED</div>
+    <div class="overlay-score">Territory Claimed: ${pct}% · Score: ${player.area}</div>
+    <button class="btn" id="startBtn">PLAY AGAIN</button>
+    <div class="controls-hint">BETTER LUCK NEXT TIME</div>
+  `;
+  document.getElementById('overlay').classList.remove('hidden');
+  document.getElementById('startBtn').onclick = initGame;
+  cancelAnimationFrame(animId);
+}
+
+function initGame() {
+  territory = new Uint8Array(GRID_W * GRID_H);
+  players = [];
+
+  const centerX = MAP_SIZE / 2, centerY = MAP_SIZE / 2;
+  players.push(new Player(1, centerX, centerY, 0, true));
+
+  const botPositions = [
+    [MAP_SIZE*0.2, MAP_SIZE*0.2],
+    [MAP_SIZE*0.8, MAP_SIZE*0.2],
+    [MAP_SIZE*0.2, MAP_SIZE*0.8],
+    [MAP_SIZE*0.8, MAP_SIZE*0.8],
+  ];
+  for(let i=0; i<4; i++) {
+    players.push(new Player(i+2, botPositions[i][0], botPositions[i][1], i+1, false));
+  }
+
+  document.getElementById('overlay').classList.add('hidden');
+  gameRunning = true;
+  lastTime = performance.now();
+  fpsTimer = 0; fpsCounter = 0;
+  animId = requestAnimationFrame(gameLoop);
+}
+
+// Input
+const keys = {};
+document.addEventListener('keydown', e => {
+  if(!gameRunning) return;
+  const p = players[0];
+  if(!p || !p.alive) return;
+  switch(e.key) {
+    case 'ArrowLeft':  p.setDir(-SPEED, 0); e.preventDefault(); break;
+    case 'ArrowRight': p.setDir(SPEED, 0);  e.preventDefault(); break;
+    case 'ArrowUp':    p.setDir(0, -SPEED); e.preventDefault(); break;
+    case 'ArrowDown':  p.setDir(0, SPEED);  e.preventDefault(); break;
+  }
+});
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+function drawMap(camX, camY) {
+  const W = canvas.width, H = canvas.height;
+
+  // dark background
+  ctx.fillStyle = '#0d0d14';
+  ctx.fillRect(0, 0, W, H);
+
+  // grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 0.5;
+
+  const startGx = Math.max(0, Math.floor(camX/CELL));
+  const endGx = Math.min(GRID_W, Math.ceil((camX+W)/CELL));
+  const startGy = Math.max(0, Math.floor(camY/CELL));
+  const endGy = Math.min(GRID_H, Math.ceil((camY+H)/CELL));
+
+  for(let gx=startGx; gx<=endGx; gx++) {
+    const sx = gx*CELL - camX;
+    ctx.beginPath(); ctx.moveTo(sx,0); ctx.lineTo(sx,H); ctx.stroke();
+  }
+  for(let gy=startGy; gy<=endGy; gy++) {
+    const sy = gy*CELL - camY;
+    ctx.beginPath(); ctx.moveTo(0,sy); ctx.lineTo(W,sy); ctx.stroke();
+  }
+
+  // territory cells
+  for(let gx=startGx; gx<endGx; gx++) {
+    for(let gy=startGy; gy<endGy; gy++) {
+      const tid = territory[gIdx(gx,gy)];
+      if(!tid) continue;
+      const p = players.find(p=>p.id===tid);
+      if(!p) continue;
+      ctx.fillStyle = p.color.fill + '44';
+      ctx.fillRect(gx*CELL - camX, gy*CELL - camY, CELL, CELL);
+    }
+  }
+
+  // trails
+  for(const p of players) {
+    if(!p.alive || p.trail.length === 0) continue;
+    for(const t of p.trail) {
+      if(t.gx < startGx || t.gx >= endGx || t.gy < startGy || t.gy >= endGy) continue;
+      ctx.fillStyle = p.color.trail;
+      ctx.shadowColor = p.color.fill;
+      ctx.shadowBlur = 6;
+      ctx.fillRect(t.gx*CELL - camX + 2, t.gy*CELL - camY + 2, CELL-4, CELL-4);
+    }
+    ctx.shadowBlur = 0;
+  }
+}
+
+function updateHUD() {
+  const p = players[0];
+  const total = GRID_W * GRID_H;
+  const pct = ((p.area / total) * 100).toFixed(1);
+  document.getElementById('scoreDisplay').textContent = pct + '%';
+  document.getElementById('areaDisplay').textContent = p.area;
+
+  // leaderboard
+  const sorted = [...players].filter(pl=>pl.alive).sort((a,b)=>b.area-a.area);
+  let html = '';
+  for(const pl of sorted.slice(0,5)) {
+    const lpct = ((pl.area/total)*100).toFixed(1);
+    html += `<div class="lb-entry">
+      <div class="lb-name"><div class="lb-dot" style="background:${pl.color.fill}"></div>${pl.isHuman?'YOU':pl.color.name}</div>
+      <div class="lb-pct">${lpct}%</div>
+    </div>`;
+  }
+  document.getElementById('lbEntries').innerHTML = html;
+}
+
+function gameLoop(timestamp) {
+  const dt = timestamp - lastTime;
+  lastTime = timestamp;
+
+  fpsCounter++;
+  fpsTimer += dt;
+  if(fpsTimer >= 1000) {
+    fps = fpsCounter;
+    fpsCounter = 0;
+    fpsTimer -= 1000;
+    document.getElementById('fps').textContent = `FPS: ${fps}`;
+  }
+
+  if(!gameRunning) return;
+
+  for(const p of players) p.update(dt);
+  checkTrailCollisions();
+
+  const player = players[0];
+  if(!player.alive) return;
+
+  const camX = player.x - canvas.width/2;
+  const camY = player.y - canvas.height/2;
+
+  drawMap(camX, camY);
+  for(const p of players) p.draw(camX, camY);
+
+  updateHUD();
+  animId = requestAnimationFrame(gameLoop);
+}
+
+document.getElementById('startBtn').onclick = initGame;
+</script>
+</body>
+</html>
